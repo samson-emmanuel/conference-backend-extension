@@ -1,7 +1,7 @@
 # app.py
 """
 Flask backend for conference priority grid system.
-Stores 2D grids per page (industrial, logistics, commercial) using JSONB in PostgreSQL.
+Stores 2D grids per page (industrial, logistics/index, commercial) using JSONB in PostgreSQL.
 Automatically ensures default empty data exists for missing pages.
 """
 
@@ -46,8 +46,8 @@ with app.app_context():
 # ----------------- Helper: Default Page Data -----------------
 DEFAULT_ROWS = {
     "commercial": 4,
-    "industrial": 9,  # updated to match your Industrial page
-    "logistics": 6
+    "industrial": 9,  # matches Industrial page
+    "index": 6         # for Logistics (frontend PAGE_NAME = 'index')
 }
 
 DEFAULT_COLUMNS = 9  # Number of editable cells (Finance → Security)
@@ -65,7 +65,12 @@ def load_data(page_name):
     """
     GET /load_data/<page_name>
     Returns stored 2D array. If missing, creates default empty data.
+    Maps 'logistics' → 'index' internally.
     """
+    # Map 'logistics' to 'index' to match frontend
+    if page_name == "logistics":
+        page_name = "index"
+
     record = PageData.query.filter_by(page_name=page_name).first()
 
     if record is None:
@@ -86,6 +91,7 @@ def save_data():
     POST /save_data
     Body: { "page": "industrial", "data": [["...", "..."], [...], ...] }
     Overwrites existing data or creates new record.
+    Maps 'logistics' → 'index' internally.
     """
     try:
         payload = request.get_json(silent=True)
@@ -93,6 +99,11 @@ def save_data():
             return jsonify({"status": "error", "message": "Missing 'page' or 'data'"}), 400
 
         page_name = payload["page"]
+
+        # Map 'logistics' to 'index' internally
+        if page_name == "logistics":
+            page_name = "index"
+
         new_data = payload["data"]
 
         # Validate 2D array
@@ -108,7 +119,7 @@ def save_data():
             db.session.add(record)
 
         db.session.commit()
-        return jsonify({"status": "success"})
+        return jsonify({"status": "success", "message": f"Data saved for page '{page_name}'"})
 
     except IntegrityError:
         db.session.rollback()
@@ -127,6 +138,7 @@ def home():
         <li>GET /load_data/&lt;page_name&gt;  (industrial | logistics | commercial)</li>
         <li>POST /save_data  (JSON: {"page": "...", "data": [...]})</li>
     </ul>
+    <p>Note: 'logistics' is internally stored as 'index'.</p>
     """
 
 if __name__ == "__main__":
