@@ -46,13 +46,16 @@ with app.app_context():
 # ----------------- Helper: Default Page Data -----------------
 DEFAULT_ROWS = {
     "commercial": 4,
-    "industrial": 3,
+    "industrial": 9,  # updated to match your Industrial page
     "logistics": 6
 }
 
-DEFAULT_COLUMNS = 9  # Number of data columns (Finance → Security)
+DEFAULT_COLUMNS = 9  # Number of editable cells (Finance → Security)
 
 def generate_default_data(page_name):
+    """
+    Generates an empty 2D array for a page with the correct number of rows/columns
+    """
     rows = DEFAULT_ROWS.get(page_name, 3)
     return [["" for _ in range(DEFAULT_COLUMNS)] for _ in range(rows)]
 
@@ -73,6 +76,7 @@ def load_data(page_name):
         db.session.commit()
         return jsonify(default_data)
 
+    # Return stored data or default if empty
     return jsonify(record.data or generate_default_data(page_name))
 
 
