@@ -22,7 +22,8 @@ CORS(app)
 
 # ── Database configuration ───────────────────────────────────────────────────
 # Using the credentials you provided
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:samson@localhost:5432/conference")
+# DATABASE_URL = os.getenv("DATABASE_URL", )
+DATABASE_URL = os.environ.get("DATABASE_URL", )
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -131,4 +132,4 @@ def home():
         <li>GET /load_data/&lt;page_name&gt;  (industrial | logistics | commercial)</li>
         <li>POST /save_data  (JSON: {"page": "...", "data": [...]})</li>
     </ul>
-    """
+    """ 
